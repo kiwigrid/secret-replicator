@@ -1,0 +1,33 @@
+# Pull Secret Manager
+
+This tool manages docker pull secrets for multiple namespaces.
+
+
+## Environment Configuration
+
+The following table lists the environment variables for configuration.
+
+[options="header"]
+|=======
+|ENV | Description | Default
+|`PULL_SECRETS` | a csv list of secrets names | `''`
+|`SECRET_NAMESPACE` | the namespace where to find the original secrets | the namespace where the deployment is installed
+|=======
+
+## Helm Chart
+
+install with helm:
+
+[source,bash]
+----
+helm upgrade -i <NAME> kiwi-helm/pull-secret-distributor
+----
+
+helm properties:
+
+[options="header"]
+|=======
+|ENV | Description | Default
+|`pullSecrets` | a csv list of secrets names | `''`
+|`rbac.enabled` | rbac roles | `true`
+|=======
