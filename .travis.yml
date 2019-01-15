@@ -20,19 +20,12 @@ install: true
 notifications:
   email: false
 
-# Anything in before_script that returns a nonzero exit code will flunk the
-# build and immediately stop. It's sorta like having set -e enabled in bash.
-# Make sure golangci-lint is vendored.
-
-before_script:
-- sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
-
 # script always runs to completion (set +e). If we have linter issues AND a
 # failing test, we want to see both. Configure golangci-lint with a
 # .golangci.yml file at the top level of your repo.
 script:
-  - make       # run a bunch of code checkers/linters in parallel
-  - IMG=kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}; make docker-build
+  - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
+  - docker build -t docker.kiwigrid.com/emt/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
   - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
   - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
   - docker push kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}
