@@ -1,5 +1,10 @@
 # Pull Secret Manager
 
+[#img-build]
+[caption="Figure 1: ",link=https://travis-ci.com/kiwigrid/pull-secret-distributor]
+image::https://img.shields.io/travis/com/kiwigrid/pull-secret-distributor.svg?style=plastic[Build]
+
+
 This tool manages docker pull secrets for multiple namespaces.
 
 
