@@ -26,7 +26,8 @@ notifications:
 
 stages:
   - name: build
-  - name: deploy
+    if: branch != master
+  - name: build_and_deploy
     # require the branch name to be master (note for PRs this is the base branch name)
     if: branch = master
 
@@ -38,8 +39,11 @@ jobs:
         - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
         - docker build -t kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
         - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
-    - stage: deploy
+    - stage: build_and_deploy
       script:
+        - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
+        - docker build -t kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
+        - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
         - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
         - docker push kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}
         - docker push kiwigrid/pull-secret-distributor:latest
