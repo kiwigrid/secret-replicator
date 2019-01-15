@@ -25,7 +25,7 @@ notifications:
 # .golangci.yml file at the top level of your repo.
 script:
   - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
-  - docker build -t docker.kiwigrid.com/emt/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
+  - docker build -t kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
   - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
   - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
   - docker push kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}
