@@ -5,7 +5,8 @@
 image::https://img.shields.io/travis/com/kiwigrid/pull-secret-distributor.svg?style=plastic[Build]
 
 
-This tool manages docker pull secrets for multiple namespaces.
+This tool manages existing secrets, especially docker pull secrets and keep them in sync over multiple namespaces.
+You can also exclude namespaces.
 
 
 ## Environment Configuration
@@ -17,5 +18,6 @@ The following table lists the environment variables for configuration.
 |ENV | Description | Default
 |`PULL_SECRETS` | a csv list of secrets names | `''`
 |`SECRET_NAMESPACE` | the namespace where to find the original secrets | the namespace where the deployment is installed
+|`IGNORE_NAMESPACES` | a list of namespaces that should be ignored | default empty
 |=======
 
