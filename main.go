@@ -38,6 +38,7 @@ func main() {
 		}
 		configFile := c.String("config")
 		secrets := strings.Split(os.Getenv("PULL_SECRETS"), ",")
+		ignoreNamespaces := strings.Split(os.Getenv("IGNORE_NAMESPACES"), ",")
 
 		var currentNamespace string
 		if os.Getenv("SECRET_NAMESPACE") == "" {
@@ -50,8 +51,9 @@ func main() {
 			currentNamespace = os.Getenv("SECRET_NAMESPACE")
 		}
 
-		go startWatchSecrets(configFile, secrets, currentNamespace)
-		go startWatchNamespaces(configFile, secrets, currentNamespace)
+		clientSet, _ := getClient(configFile)
+		go startWatchSecrets(clientSet, secrets, currentNamespace, ignoreNamespaces)
+		go startWatchNamespaces(clientSet, secrets, currentNamespace, ignoreNamespaces)
 		for {
 			time.Sleep(5 * time.Second)
 		}
@@ -68,8 +70,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func startWatchSecrets(pathToCfg string, secrets []string, lookupNamespace string) {
-	clientSet, _ := getClient(pathToCfg)
+func startWatchSecrets(clientSet *kubernetes.Clientset, secrets []string, lookupNamespace string, ignoreNamespaces []string) {
 	listOptions := metav1.ListOptions{}
 	watcher, err := clientSet.CoreV1().Secrets(lookupNamespace).Watch(listOptions)
 	if err != nil {
@@ -96,14 +97,17 @@ func startWatchSecrets(pathToCfg string, secrets []string, lookupNamespace strin
 				if ns.Name == lookupNamespace {
 					continue
 				}
+				if contains(ignoreNamespaces, ns.Name) {
+					logrus.Infof("skip namespace %v", ns.Name)
+					continue
+				}
 				createOrUpdateSecret(clientSet, secret, ns.Name, secret.Name)
 			}
 		}
 	}
 }
 
-func startWatchNamespaces(pathToCfg string, secrets []string, lookupNamespace string) {
-	clientSet, _ := getClient(pathToCfg)
+func startWatchNamespaces(clientSet kubernetes.Interface, secrets []string, lookupNamespace string, ignoreNamespaces []string) {
 	listOptions := metav1.ListOptions{}
 
 	//listOptions := metav1.ListOptions{LabelSelector: "pull-secret-inject=enabled"}
@@ -124,14 +128,19 @@ func startWatchNamespaces(pathToCfg string, secrets []string, lookupNamespace st
 		switch event.Type {
 		case watch.Added:
 			{
-				handleNamespace(clientSet, lookupNamespace, namespace.Name, secrets)
+				handleNamespace(clientSet, lookupNamespace, namespace.Name, secrets, ignoreNamespaces)
 				logrus.Infof("add namespace %v handled", namespace.Name)
 			}
 		}
 	}
 }
 
-func handleNamespace(clientSet *kubernetes.Clientset, currentNamespace string, namespace string, secrets []string) {
+func handleNamespace(clientSet kubernetes.Interface, currentNamespace string, namespace string, secrets []string, ignoreNamespaces []string) {
+	if contains(ignoreNamespaces, namespace) {
+		logrus.Infof("skip namespace %v", namespace)
+		return
+	}
+
 	getOptions := metav1.GetOptions{}
 	for _, element := range secrets {
 		if element == "" {
@@ -146,7 +155,7 @@ func handleNamespace(clientSet *kubernetes.Clientset, currentNamespace string, n
 	}
 }
 
-func createOrUpdateSecret(clientSet *kubernetes.Clientset, copySecret *v1.Secret, namespace string, secretName string) {
+func createOrUpdateSecret(clientSet kubernetes.Interface, copySecret *v1.Secret, namespace string, secretName string) {
 	getOptions := metav1.GetOptions{}
 	secret, err := clientSet.CoreV1().Secrets(namespace).Get(secretName, getOptions)
 	if err != nil {
