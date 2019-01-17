@@ -7,7 +7,7 @@ sudo: required
 
 # Force-enable Go modules. This will be unnecessary when Go 1.12 lands.
 env:
-- GO111MODULE=on CHANGE_MINIKUBE_NONE_USER=true INSTALL_K8S_TOOLS=1 RUN_DEP=1 IMG=kiwigrid
+- GO111MODULE=on CHANGE_MINIKUBE_NONE_USER=true INSTALL_K8S_TOOLS=1 RUN_DEP=1 IMG=kiwigird
 
 git:
   depth: 1
@@ -20,30 +20,22 @@ install: true
 notifications:
   email: false
 
+# Anything in before_script that returns a nonzero exit code will flunk the
+# build and immediately stop. It's sorta like having set -e enabled in bash.
+# Make sure golangci-lint is vendored.
+
+before_script:
+- ./tools/travis/start-kubeadm-dind.sh
+- ./tools/travis/k8s-tools.sh
+- ./tools/travis/minikube-install.sh
+
 # script always runs to completion (set +e). If we have linter issues AND a
 # failing test, we want to see both. Configure golangci-lint with a
 # .golangci.yml file at the top level of your repo.
-
-stages:
-  - name: build
-    if: branch != master
-  - name: build_and_deploy
-    # require the branch name to be master (note for PRs this is the base branch name)
-    if: branch = master
-
-
-jobs:
-  include:
-    - stage: build
-      script:
-        - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
-        - docker build -t kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
-        - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
-    - stage: build_and_deploy
-      script:
-        - sed -i s/latest/${TRAVIS_BUILD_NUMBER}/g main.go
-        - docker build -t kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} .
-        - docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
-        - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-        - docker push kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}
-        - docker push kiwigrid/pull-secret-distributor:latest
+script:
+- make       # run a bunch of code checkers/linters in parallel
+- IMG=kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}; make docker-build
+- docker tag kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER} kiwigrid/pull-secret-distributor:latest
+- echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+- docker push kiwigrid/pull-secret-distributor:${TRAVIS_BUILD_NUMBER}
+- docker push kiwigrid/pull-secret-distributor:latest

@@ -1,22 +1,17 @@
-FROM golang:alpine AS build-env
+# Build the manager binary
+FROM golang:1.10.3 as builder
 
-RUN apk add --no-cache git mercurial
-
-# install glide
-RUN go get github.com/Masterminds/glide
-# create a working directory
+# Copy in the go src
 WORKDIR /go/src/github.com/kiwigrid/pull-secret-distributor
-# add glide.yaml and glide.lock
-ADD glide.yaml glide.yaml
-ADD glide.lock glide.lock
-# install packages
-RUN glide install
-# add source code
-ADD . .
-RUN go build
+COPY pkg/    pkg/
+COPY cmd/    cmd/
+COPY vendor/ vendor/
 
-# final stage
-FROM alpine
-WORKDIR /app
-COPY --from=build-env /go/src/github.com/kiwigrid/pull-secret-distributor/pull-secret-distributor /app/
-ENTRYPOINT ./pull-secret-distributor
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kiwigrid/pull-secret-distributor/cmd/manager
+
+# Copy the controller-manager into a thin image
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /go/src/github.com/kiwigrid/pull-secret-distributor/manager .
+ENTRYPOINT ["./manager"]
