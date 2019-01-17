@@ -110,6 +110,12 @@ func (r *ReconcileNamespace) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	// The object is being deleted
+	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		return reconcile.Result{}, nil
+
+	}
+
 	secrets := &corev1.SecretList{}
 	searchError := r.List(context.TODO(), &client.ListOptions{Namespace: r.currentNamespace}, secrets)
 	if searchError != nil {
