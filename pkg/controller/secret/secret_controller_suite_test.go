@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kiwigrid/pull-secret-distributor/pkg/apis"
+	"github.com/kiwigrid/secret-replicator/pkg/apis"
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
