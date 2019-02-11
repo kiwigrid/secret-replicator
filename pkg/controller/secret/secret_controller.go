@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/kiwigrid/pull-secret-distributor/pkg/service"
+	"github.com/kiwigrid/secret-replicator/pkg/service"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -48,7 +48,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileSecret{Client: mgr.GetClient(),
 		scheme:            mgr.GetScheme(),
 		log:               logf.Log.WithName("pull-secret-controller"),
-		secrets:           strings.Split(os.Getenv("PULL_SECRETS"), ","),
+		secrets:           strings.Split(os.Getenv("SECRETS_LIST"), ","),
 		ignoreNamespaces:  strings.Split(os.Getenv("IGNORE_NAMESPACES"), ","),
 		currentNamespace:  currentNamespace,
 		PullSecretService: pullsecretservice.NewPullSecretService()}

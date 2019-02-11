@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/kiwigrid/pull-secret-distributor/pkg/controller/namespace"
+	"github.com/kiwigrid/secret-replicator/pkg/controller/namespace"
 )
 
 func init() {

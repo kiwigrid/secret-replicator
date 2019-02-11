@@ -1,11 +1,11 @@
-# Pull Secret Manager
+# Secret Replicator
 
 [#img-build]
-[caption="Figure 1: ",link=https://travis-ci.com/kiwigrid/pull-secret-distributor]
-image::https://img.shields.io/travis/com/kiwigrid/pull-secret-distributor.svg?style=plastic[Build]
+[caption="Figure 1: ",link=https://travis-ci.com/kiwigrid/secret-replicator]
+image::https://img.shields.io/travis/com/kiwigrid/secret-replicator.svg?style=plastic[Build]
 
 
-This tool manages existing secrets, especially docker pull secrets and keep them in sync over multiple namespaces.
+This tool manages existing secrets and keep them in sync over multiple namespaces.
 You can also exclude namespaces.
 
 
@@ -16,7 +16,7 @@ The following table lists the environment variables for configuration.
 [options="header"]
 |=======
 |ENV | Description | Default
-|`PULL_SECRETS` | a csv list of secrets names | `''`
+|`SECRETS_LIST` | a csv list of secrets names | `''`
 |`SECRET_NAMESPACE` | the namespace where to find the original secrets | the namespace where the deployment is installed
 |`IGNORE_NAMESPACES` | a list of namespaces that should be ignored | default empty
 |=======
