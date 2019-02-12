@@ -64,7 +64,10 @@ func (s *PullSecretService) CreateOrUpdateSecret(client client.Client, copySecre
 			s.log.Error(err, "ERROR")
 		}
 	} else {
-		secret.Data[".dockercfg"] = copySecret.Data[".dockercfg"]
+		for k, v := range copySecret.Data {
+			s.log.Info("copy %s for secret %s", k, copySecret.Name)
+			secret.Data[k] = v
+		}
 		err := client.Update(context.TODO(), secret)
 		if err == nil {
 			s.log.Info(fmt.Sprintf("successful updated secret %v in namespace %v", secretName, namespace))
