@@ -48,7 +48,11 @@ func (s *PullSecretService) CreateOrUpdateSecret(client client.Client, copySecre
 			kubSecret.Name = copySecret.Name
 			kubSecret.Type = copySecret.Type
 			kubSecret.Data = map[string][]byte{}
-			kubSecret.Data[".dockercfg"] = copySecret.Data[".dockercfg"]
+
+			for k, v := range copySecret.Data {
+				s.log.Info("copy %s for secret %s", k, copySecret.Name)
+				kubSecret.Data[k] = v
+			}
 
 			err := client.Create(context.TODO(), kubSecret)
 			if err == nil {
