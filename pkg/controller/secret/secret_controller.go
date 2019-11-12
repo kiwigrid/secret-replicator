@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
+	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -125,7 +126,8 @@ func (r *ReconcileSecret) Reconcile(request reconcile.Request) (reconcile.Result
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
-		if a == e {
+		matched, _ := regexp.Match(a, []byte(e))
+		if a == e || matched {
 			return true
 		}
 	}
