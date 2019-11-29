@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
+	"regexp"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -142,7 +143,8 @@ func (r *ReconcileNamespace) Reconcile(request reconcile.Request) (reconcile.Res
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
-		if a == e {
+		matched, _ := regexp.Match(a, []byte(e))
+		if a == e || matched {
 			return true
 		}
 	}
