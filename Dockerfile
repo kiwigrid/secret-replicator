@@ -13,7 +13,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kiwi
 # Copy the controller-manager into a thin image
 FROM alpine:latest
 
-RUN mkdir /app && chown nobody /app
+RUN mkdir /app && \
+    chown nobody /app
+
 WORKDIR /app
 
 COPY --from=builder /go/src/github.com/kiwigrid/secret-replicator/manager .
