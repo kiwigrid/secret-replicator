@@ -14,4 +14,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager github.com/kiwi
 FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /go/src/github.com/kiwigrid/secret-replicator/manager .
+
+# Run as nobody and make PSPs happy
+USER 65534
+
 ENTRYPOINT ["./manager"]
