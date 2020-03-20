@@ -3,14 +3,16 @@ package secret
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"regexp"
+	"strings"
+
 	"github.com/go-logr/logr"
 	"github.com/kiwigrid/secret-replicator/pkg/service"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"os"
-	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -18,7 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strings"
 )
 
 /**
@@ -51,6 +52,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		log:               logf.Log.WithName("pull-secret-controller"),
 		secrets:           strings.Split(os.Getenv("SECRETS_LIST"), ","),
 		ignoreNamespaces:  strings.Split(os.Getenv("IGNORE_NAMESPACES"), ","),
+		includeNamespaces: strings.Split(os.Getenv("INCLUDE_NAMESPACES"), ","),
 		currentNamespace:  currentNamespace,
 		PullSecretService: pullsecretservice.NewPullSecretService()}
 }
@@ -80,9 +82,10 @@ type ReconcileSecret struct {
 	scheme *runtime.Scheme
 	log    logr.Logger
 	*pullsecretservice.PullSecretService
-	secrets          []string
-	ignoreNamespaces []string
-	currentNamespace string
+	secrets           []string
+	ignoreNamespaces  []string
+	includeNamespaces []string
+	currentNamespace  string
 }
 
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
@@ -118,8 +121,16 @@ func (r *ReconcileSecret) Reconcile(request reconcile.Request) (reconcile.Result
 		if contains(r.ignoreNamespaces, element.Name) {
 			continue
 		}
-		r.log.Info(fmt.Sprintf("Create or update secret %s in namespace %s", instance.Name, element.Name))
-		r.PullSecretService.CreateOrUpdateSecret(r.Client, instance, element.Name, instance.Name)
+		// only use include namespaces if it is not empty
+		if len(r.includeNamespaces) > 0 {
+			if contains(r.includeNamespaces, element.Name) {
+				r.log.Info(fmt.Sprintf("Create or update secret %s in namespace %s", instance.Name, element.Name))
+				r.PullSecretService.CreateOrUpdateSecret(r.Client, instance, element.Name, instance.Name)
+			}
+		} else {
+			r.log.Info(fmt.Sprintf("Create or update secret %s in namespace %s", instance.Name, element.Name))
+			r.PullSecretService.CreateOrUpdateSecret(r.Client, instance, element.Name, instance.Name)
+		}
 	}
 	return reconcile.Result{}, nil
 }
