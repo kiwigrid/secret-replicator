@@ -23,6 +23,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 FROM gcr.io/distroless/static:nonroot 
 WORKDIR /
 COPY --from=builder /workspace/manager .
-USER nonroot:nonroot
+
+# Use the nonroot user's numeric UID/GID to satisfy MustRunAsNonRoot PodSecurityPolicies
+# https://kubernetes.io/docs/concepts/policy/pod-security-policy/#users-and-groups
+USER 65532:65532
 
 ENTRYPOINT ["/manager"]
