@@ -1,3 +1,7 @@
+*This project has been archived!*
+
+Please use https://github.com/kubeops/config-syncer[config-syncer] or https://github.com/emberstack/kubernetes-reflector[Reflector] instead.
+
 # Secret Replicator
 
 [#img-build]
